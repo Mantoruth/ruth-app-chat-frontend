@@ -1,51 +1,17 @@
+const path = require('path');
+const webpack = require('webpack'); // Import Webpack
+
 module.exports = {
-  // Basic configuration
+  outputDir: path.resolve(__dirname, 'dist'),
   publicPath: '/',
-  outputDir: 'dist',
-  assetsDir: 'static',
-
-  // Linting
-  lintOnSave: true,
-
-  // Development server
+  configureWebpack: {
+    plugins: [
+      new webpack.DefinePlugin({
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false), // Define the feature flag
+      }),
+    ],
+  },
   devServer: {
     port: 8080,
-    hot: true,
-    open: true,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        pathRewrite: {
-          '^/api': ''
-        }
-      }
-    }
   },
-
-  // CSS
-  css: {
-    loaderOptions: {
-      sass: {
-        prependData: `
-          @import "@/assets/styles/_variables.scss";
-          @import "@/assets/styles/_mixins.scss";
-        `
-      }
-    }
-  },
-
-  // Webpack
-  configureWebpack: {
-    optimization: {
-      splitChunks: {
-        chunks: 'all'
-      }
-    }
-  },
-
-  // Babel
-  transpileDependencies: [
-    /\bcue\b/
-  ]
-}
+};

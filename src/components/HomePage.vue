@@ -1,16 +1,16 @@
 <template>
   <div class="home-container">
     <h1>Welcome to our App</h1>
-    <p>This is the home page of our application.</p>
-    <button @click="navigateToChat">Go to Chat</button>
+    <p>Welcome to the home page of our application.</p>
+    <button @click="goToAboutUs">Get Started</button>
   </div>
 </template>
 
 <script>
 export default {
   methods: {
-    navigateToChat() {
-      this.$router.push('/chat');
+    goToAboutUs() {
+      this.$router.push('/about');
     },
   },
 };
@@ -18,10 +18,17 @@ export default {
 
 <style scoped>
 .home-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
+  height: 100vh; /* Full height of the viewport */
+  width: 100%; /* Full width of the viewport */
+  background-image: url('@/assets/images/img3.jpg'); /* Adjust the path to your background image */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 button {

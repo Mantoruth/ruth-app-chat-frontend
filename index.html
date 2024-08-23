@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StubRtcClient Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    .button-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #0056b3;
+    }
+    
+    #local-video, #remote-audio {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="button-container">
+    <button id="initialize">Initialize</button>
+    <button id="mute">Mute</button>
+    <button id="unmute">Unmute</button>
+    <button id="audioMute">Audio Mute</button>
+    <button id="audioUnmute">Audio Unmute</button>
+    <button id="disconnect">Disconnect</button>
+    <button id="shareScreen">Share Screen</button>
+    <button id="joinAudioCall">Join Audio Call</button>
+    <button id="leaveAudioCall">Leave Audio Call</button>
+    <button id="sendChat">Send Chat</button>
+  </div>
+
+  <video id="local-video" autoplay></video>
+  <audio id="remote-audio" autoplay></audio>
+
+  <script type="module">
+    import StubRtcClient from './utils/StubRtcClient.js';
+
+    const stubRtcClient = new StubRtcClient();
+    const localVideoElement = document.getElementById('local-video');
+    const remoteAudioElement = document.getElementById('remote-audio');
+
+    document.getElementById('initialize').addEventListener('click', () => {
+      stubRtcClient.initialize(localVideoElement, remoteAudioElement);
+    });
+
+    document.getElementById('mute').addEventListener('click', () => {
+      stubRtcClient.toggleMute(true);
+    });
+
+    document.getElementById('unmute').addEventListener('click', () => {
+      stubRtcClient.toggleMute(false);
+    });
+
+    document.getElementById('audioMute').addEventListener('click', () => {
+      stubRtcClient.toggleAudioMute(true);
+    });
+
+    document.getElementById('audioUnmute').addEventListener('click', () => {
+      stubRtcClient.toggleAudioMute(false);
+    });
+
+    document.getElementById('disconnect').addEventListener('click', () => {
+      stubRtcClient.disconnect();
+    });
+
+    document.getElementById('shareScreen').addEventListener('click', () => {
+      stubRtcClient.shareScreen();
+    });
+
+    document.getElementById('joinAudioCall').addEventListener('click', () => {
+      stubRtcClient.joinAudioCall(remoteAudioElement);
+    });
+
+    document.getElementById('leaveAudioCall').addEventListener('click', () => {
+      stubRtcClient.leaveAudioCall();
+    });
+
+    document.getElementById('sendChat').addEventListener('click', () => {
+      stubRtcClient.sendChatMessage('Hello, world!');
+    });
+  </script>
+</body>
+</html>

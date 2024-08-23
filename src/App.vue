@@ -3,68 +3,71 @@
     <header>
       <nav aria-label="Main Navigation">
         <ul>
+          <li><img src="@/assets/images/logo.png" alt="Logo" class="logo" /></li>
           <li><router-link to="/">Home</router-link></li>
-          <li><router-link to="/chat">Chat</router-link></li>
-          <li><router-link to="/login">Login</router-link></li>
-          <li><router-link to="/register">Register</router-link></li>
           <li><router-link to="/about">About Us</router-link></li>
           <li><router-link to="/contacts">Contacts</router-link></li>
           <li><router-link to="/services">Services</router-link></li>
-          <li><router-link to="/profile">Profile</router-link></li>
-          <li><router-link to="/stories">Stories</router-link></li>
-          <li><router-link to="/video-call">Video Call</router-link></li>
+          <li><router-link to="/chat">Chat</router-link></li> <!-- Add Chat link here -->
         </ul>
       </nav>
     </header>
 
     <main>
-      <router-view @error="handleRouterError" />
+      <router-view />
     </main>
 
     <footer>
       <div class="footer-content">
-        <p>&copy; 2024 My App. All rights reserved.</p>
+        <p>&copy; 2024 RUTH-APP. All rights reserved.</p>
         <nav aria-label="Footer Navigation">
           <ul>
             <li><a href="#">Privacy Policy</a></li>
             <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Our Contacts</a></li>
           </ul>
         </nav>
       </div>
     </footer>
   </div>
 </template>
+
 <script>
-import { createApp } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
-
-const router = createRouter({
-  history: createWebHistory(),
-  routes: [
-    // Define your routes here
-  ]
-})
-
-const app = createApp({
+export default {
   name: 'App',
-  methods: {
-    handleRouterError(error) {
-      console.error('Router error:', error)
-      // Display a meaningful error message or a fallback component
+
+  created() {
+    // Ensure Vue Router is initialized
+    if (this.$router) {
+      this.$router.onError(this.handleRouterError);
+    } else {
+      console.warn('Vue Router is not initialized');
     }
   },
-  created() {
-    router.onError(this.handleRouterError)
-  },
-  mounted() {
-    router.push('/')
-  }
-})
 
-app.use(router)
-app.mount('#app')
+  methods: {
+    handleRouterError(error) {
+      console.error('Router error:', error);
+      // Optionally, display a user-friendly message or navigate to an error page
+      // Example: this.$store.commit('setError', error.message);
+      this.$router.replace('/error'); // Ensure '/error' route/component exists
+    }
+  },
+
+  mounted() {
+    // Uncomment if you need to navigate to a default route on mount
+    // Ensure the route exists and is correctly defined
+    // this.$router.push('/').catch(err => {
+    //   console.error('Navigation error:', err);
+    // });
+  }
+}
 </script>
+
+<style>
+
+</style>
+
 
 <style>
 /* Global styles */
@@ -101,6 +104,10 @@ nav a {
   color: #fff;
   text-decoration: none;
 }
+.logo{
+  height: 40px;
+  margin-right: 2rem;
+}
 
 main {
   flex-grow: 1;
@@ -132,4 +139,5 @@ footer {
   color: #fff;
   text-decoration: none;
 }
+
 </style>

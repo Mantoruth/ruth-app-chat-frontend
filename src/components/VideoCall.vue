@@ -31,6 +31,7 @@
 </template>
 
 <script>
+import StubRtcClient from '@/utils/StubRtcClient.js';
 export default {
   data() {
     return {
@@ -49,7 +50,7 @@ export default {
   },
   methods: {
     initializeVideoCall() {
-      this.rtcClient = new RtcClient();
+      this.rtcClient = new StubRtcClient();
       this.rtcClient.on('remoteStream', this.handleRemoteStream);
       this.rtcClient.on('participantJoined', this.handleParticipantJoined);
       this.rtcClient.on('participantLeft', this.handleParticipantLeft);

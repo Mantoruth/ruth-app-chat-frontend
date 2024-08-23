@@ -6,6 +6,7 @@
       <p>{{ service.description }}</p>
       <button @click="learnMore(service.id)">Learn More</button>
     </div>
+    <button @click="goToRegister" class="next-button">Register</button>
   </div>
 </template>
 
@@ -37,8 +38,10 @@ export default {
   },
   methods: {
     learnMore(serviceId) {
-      // Implement the logic to navigate to a service-specific page or modal
       console.log(`Learn more about service with ID: ${serviceId}`);
+    },
+    goToRegister() {
+      this.$router.push('/register');
     },
   },
 };
@@ -46,16 +49,26 @@ export default {
 
 <style scoped>
 .services-container {
-  max-width: 800px;
-  margin: 0 auto;
+  height: 100vh; /* Set container height to 100% of viewport height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   padding: 2rem;
+  background-image: url('@/assets/images/services.jpg'); /* Background image for the entire container */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: black; /* Change text color to black */
 }
 
 .service-card {
+  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background for each card */
   border: 1px solid #ccc;
   border-radius: 0.25rem;
   padding: 1rem;
   margin-bottom: 1rem;
+  color: black; /* Change text color to black */
 }
 
 .service-card h3 {
@@ -70,5 +83,9 @@ button {
   border-radius: 0.25rem;
   cursor: pointer;
 }
+
+.next-button {
+  background-color: #2196F3;
+  margin-top: 2rem;
+}
 </style>
-  

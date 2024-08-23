@@ -1,24 +1,28 @@
-
 <template>
-  <div class="contacts-container">
-    <h1>Contact Us</h1>
-    <form @submit.prevent="sendMessage">
-      <div class="form-group">
-        <label for="name">Name</label>
-        <input type="text" id="name" v-model="name" required />
+  <div class="contact-container">
+    <div class="background">
+      <div class="content">
+        <h1>Contact Us</h1>
+        <form @submit.prevent="sendMessage">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" v-model="name" required />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" v-model="email" required />
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" v-model="message" required></textarea>
+          </div>
+          <button type="submit">Send Message</button>
+        </form>
+        <div class="success-message" v-if="success">Your message has been sent successfully!</div>
+        <div class="error-message" v-if="error">{{ error }}</div>
+        <button @click="goToServices" class="services-button">Go to Services</button>
       </div>
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" v-model="email" required />
-      </div>
-      <div class="form-group">
-        <label for="message">Message</label>
-        <textarea id="message" v-model="message" required></textarea>
-      </div>
-      <button type="submit">Send Message</button>
-    </form>
-    <div class="success-message" v-if="success">Your message has been sent successfully!</div>
-    <div class="error-message" v-if="error">{{ error }}</div>
+    </div>
   </div>
 </template>
 
@@ -35,8 +39,6 @@ export default {
   },
   methods: {
     sendMessage() {
-      // Implement your message sending logic here
-      // You can make an API call to your server and handle the response
       if (this.name && this.email && this.message) {
         this.success = true;
         this.error = '';
@@ -49,19 +51,44 @@ export default {
         this.error = 'Please fill in all the required fields.';
       }
     },
+    goToServices() {
+      this.$router.push('/services');
+    },
   },
 };
 </script>
 
 <style scoped>
 .contacts-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
+  height: 100vh; /* Full height of the viewport */
+  width: 100%; /* Full width of the viewport */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.background {
+  background-image: url('../assets/images/contactus.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh; /* Full height of the viewport */
+  width: 100%; /* Full width of the viewport */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content {
+  max-width: 1000px;
+  padding: 5rem;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background to improve text readability */
+  border-radius: 100px; /* Rounded corners */
+  color: white; /* Ensure text is readable on background */
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
 label {
@@ -79,7 +106,7 @@ textarea {
 }
 
 textarea {
-  height: 120px;
+  height: 60px;
 }
 
 button {
@@ -89,6 +116,7 @@ button {
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
   cursor: pointer;
+  margin-top: 1rem;
 }
 
 .success-message {
@@ -100,4 +128,12 @@ button {
   color: red;
   margin-top: 1rem;
 }
+
+.services-button {
+  background-color: #2196F3;
+  color: white;
+  margin-top: 2rem;
+  border-radius: 0.25rem;
+}
 </style>
+
