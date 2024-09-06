@@ -8,7 +8,7 @@
           <li><router-link to="/about">About Us</router-link></li>
           <li><router-link to="/contacts">Contacts</router-link></li>
           <li><router-link to="/services">Services</router-link></li>
-          <li><router-link to="/chat">Chat</router-link></li> <!-- Add Chat link here -->
+          <li><router-link to="/chat">Chat</router-link></li>
         </ul>
       </nav>
     </header>
@@ -33,42 +33,38 @@
 </template>
 
 <script>
+import { io } from 'socket.io-client'; // Import Socket.io client
+
 export default {
-  name: 'App',
-
-  created() {
-    // Ensure Vue Router is initialized
-    if (this.$router) {
-      this.$router.onError(this.handleRouterError);
-    } else {
-      console.warn('Vue Router is not initialized');
-    }
+  data() {
+    return {
+      socket: null,
+    };
   },
-
-  methods: {
-    handleRouterError(error) {
-      console.error('Router error:', error);
-      // Optionally, display a user-friendly message or navigate to an error page
-      // Example: this.$store.commit('setError', error.message);
-      this.$router.replace('/error'); // Ensure '/error' route/component exists
-    }
-  },
-
   mounted() {
-    // Uncomment if you need to navigate to a default route on mount
-    // Ensure the route exists and is correctly defined
-    // this.$router.push('/').catch(err => {
-    //   console.error('Navigation error:', err);
-    // });
-  }
-}
+    this.initSocket();
+  },
+  methods: {
+    initSocket() {
+      // Connect to the Socket.io server
+      this.socket = io('http://localhost:3000'); // Adjust the port if needed
+
+      this.socket.on('connect', () => {
+        console.log('Socket.io connection established.');
+      });
+
+      this.socket.on('newMessage', (message) => {
+        console.log('New message received:', message);
+        // Here you can update your UI with the new message
+      });
+
+      this.socket.on('disconnect', () => {
+        console.log('Socket.io connection closed.');
+      });
+    },
+  },
+};
 </script>
-
-<style>
-
-</style>
-
-
 <style>
 /* Global styles */
 body {
@@ -104,7 +100,8 @@ nav a {
   color: #fff;
   text-decoration: none;
 }
-.logo{
+
+.logo {
   height: 40px;
   margin-right: 2rem;
 }
@@ -139,5 +136,4 @@ footer {
   color: #fff;
   text-decoration: none;
 }
-
 </style>

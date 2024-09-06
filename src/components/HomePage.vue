@@ -23,12 +23,6 @@ export default {
   justify-content: center;
   align-items: center;
   text-align: center;
-  height: 100vh; /* Full height of the viewport */
-  width: 100%; /* Full width of the viewport */
-  background-image: url('@/assets/images/img3.jpg'); /* Adjust the path to your background image */
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
 button {

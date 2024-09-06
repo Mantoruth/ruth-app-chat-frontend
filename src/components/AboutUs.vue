@@ -34,10 +34,6 @@ export default {
 }
 
 .background {
-  background-image: url('../assets/images/aboutus.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   height: 100vh; /* Full height of the viewport */
   width: 100%; /* Full width of the viewport */
   display: flex;

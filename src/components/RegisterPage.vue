@@ -15,14 +15,17 @@
           <label for="password">Password</label>
           <input type="password" id="password" v-model="password" required />
         </div>
-        <button type="submit">Submit</button>
+        <button type="submit" :disabled="isSubmitting">Submit</button><br><br>
       </form>
       <div class="error-message" v-if="error">{{ error }}</div>
+      <button @click="goToLogin">Go to Login</button>
     </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -30,19 +33,36 @@ export default {
       email: '',
       password: '',
       error: '',
+      isSubmitting: false,
     };
   },
   methods: {
-    register() {
-      // Implement your registration logic here
-      // You can make an API call to your server and handle the response
+    async register() {
       if (this.name && this.email && this.password) {
-        // Successful registration, redirect to the login page or store the user data
-        this.$router.push('/login');
+        this.isSubmitting = true;
+        try {
+          const response = await axios.post(`${process.env.VUE_APP_API_BASE_URL}/auth/register`, {
+            name: this.name,
+            email: this.email,
+            password: this.password,
+          });
+
+          if (response.data.success) {
+            this.$router.push('/login');
+          } else {
+            this.error = response.data.message || 'Registration failed.';
+          }
+        } catch (error) {
+          console.error('Registration error:', error);
+          this.error = 'An error occurred while registering. Please try again.';
+        }
       } else {
         this.error = 'Please fill in all the required fields.';
       }
     },
+    goToLogin() {
+      this.$router.push('/login');
+    }
   },
 };
 </script>
@@ -51,10 +71,6 @@ export default {
 .register-container {
   height: 100vh; /* Full height of the viewport */
   width: 100%; /* Full width of the viewport */
-  background-image: url('@/assets/images/register.jpg'); /* Path to your background image */
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -66,7 +82,7 @@ export default {
   padding: 2rem;
   border: 1px solid #ccc;
   border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.8); /* Semi-transparent background for form readability */
+  background: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
 }
 
 .form-group {

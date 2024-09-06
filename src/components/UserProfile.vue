@@ -4,19 +4,33 @@
       <img :src="user.profilePicture" alt="Profile Picture" class="profile-picture" />
       <h2>{{ user.name }}</h2>
       <p>{{ user.email }}</p>
+      <p v-if="user.bio">{{ user.bio }}</p>
     </div>
 
     <div class="profile-edit-section">
       <h3>Edit Profile</h3>
       <form @submit.prevent="updateProfile">
-        <!-- Form fields for editing profile information -->
-        <button type="submit">Save Changes</button>
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" v-model="user.name" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" v-model="user.email" required />
+        </div>
+        <div class="form-group">
+          <label for="bio">Bio</label>
+          <textarea id="bio" v-model="user.bio" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn">Save Changes</button>
+        <div class="error-message" v-if="error">{{ error }}</div>
+        <div class="success-message" v-if="successMessage">{{ successMessage }}</div>
       </form>
     </div>
 
     <div class="account-settings-section">
       <h3>Account Settings</h3>
-      <!-- Account settings options -->
+      <!-- Account settings options can go here -->
     </div>
 
     <div class="activity-history-section">
@@ -36,28 +50,29 @@ export default {
         email: 'johndoe@example.com',
         bio: '',
       },
+      error: '',
+      successMessage: '',
     };
   },
   methods: {
-    updateProfile() {
-      // Implement logic to update the user's profile
-      // For example, you could make an API call to your server to save the changes
-      const updatedProfile = {
-        name: this.name,
-        email: this.email,
-        bio: this.bio,
-      };
+    async updateProfile() {
+      this.error = ''; // Reset error message
+      this.successMessage = ''; // Reset success message
 
-      // Make the API call to update the user's profile
-      this.$axios.put('/api/users/profile', updatedProfile)
-        .then((response) => {
-          console.log('Profile updated successfully!', response.data);
-          // You can also display a success message to the user
-        })
-        .catch((error) => {
-          console.error('Error updating profile:', error);
-          // You can also display an error message to the user
-        });
+      try {
+        const updatedProfile = {
+          name: this.user.name,
+          email: this.user.email,
+          bio: this.user.bio,
+        };
+
+        const response = await this.$axios.put('/api/users/profile', updatedProfile);
+        console.log('Profile updated successfully!', response.data);
+        this.successMessage = 'Profile updated successfully!';
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        this.error = 'An error occurred while updating your profile. Please try again.';
+      }
     },
   },
 };
@@ -66,16 +81,36 @@ export default {
 <style scoped>
 .profile-container {
   max-width: 600px;
-  margin: 0 auto;
+  margin: 2rem auto;
   padding: 2rem;
-  background-color: #f5f5f5;
+  background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-h1 {
+.profile-header {
   text-align: center;
   margin-bottom: 2rem;
+}
+
+.profile-picture {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  margin: 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+h3 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  color: #333;
 }
 
 .form-group {
@@ -91,10 +126,14 @@ label {
 input,
 textarea {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
+}
+
+textarea {
+  resize: none; /* Prevent resizing */
 }
 
 .btn {
@@ -107,9 +146,20 @@ textarea {
   border-radius: 4px;
   font-size: 1rem;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .btn:hover {
   background-color: #45a049;
+}
+
+.error-message {
+  color: red;
+  margin-top: 1rem;
+}
+
+.success-message {
+  color: green;
+  margin-top: 1rem;
 }
 </style>

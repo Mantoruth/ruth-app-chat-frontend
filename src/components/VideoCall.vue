@@ -12,9 +12,7 @@
     </div>
 
     <div class="call-controls">
-      <button @click="toggleMute">
-        {{ isMuted ? 'Unmute' : 'Mute' }}
-      </button>
+      <button @click="toggleMute">{{ isMuted ? 'Unmute' : 'Mute' }}</button>
       <button @click="endCall">End Call</button>
       <button @click="shareScreen">Share Screen</button>
     </div>
@@ -31,11 +29,14 @@
 </template>
 
 <script>
-import StubRtcClient from '@/utils/StubRtcClient.js';
+import { io } from 'socket.io-client';
+import SimpleWebRTC from 'simplewebrtc';
+
 export default {
   data() {
     return {
-      rtcClient: null,
+      webrtc: null,
+      socket: null,
       remoteParticipantName: 'Remote User',
       isMuted: false,
       chatMessages: [],
@@ -46,47 +47,101 @@ export default {
     this.initializeVideoCall();
   },
   beforeUnmount() {
-    this.rtcClient.disconnect();
+    this.cleanup();
   },
   methods: {
-    initializeVideoCall() {
-      this.rtcClient = new StubRtcClient();
-      this.rtcClient.on('remoteStream', this.handleRemoteStream);
-      this.rtcClient.on('participantJoined', this.handleParticipantJoined);
-      this.rtcClient.on('participantLeft', this.handleParticipantLeft);
-      this.rtcClient.on('chatMessage', this.handleChatMessage);
-      this.rtcClient.initialize(this.$refs.localVideo);
+    async initializeVideoCall() {
+      try {
+        // Initialize SimpleWebRTC instance
+        this.webrtc = new SimpleWebRTC({
+          localVideoEl: this.$refs.localVideo,
+          remoteVideosEl: this.$refs.remoteVideo,
+          autoRequestMedia: true,
+        });
+
+        // Initialize Socket.IO client
+        this.socket = io('http://localhost:3000'); // Adjust the server URL as needed
+
+        // Handle WebRTC events
+        this.webrtc.on('readyToCall', () => {
+          console.log('WebRTC is ready to call');
+          this.webrtc.joinRoom('default-room'); // Join a room (you can use different rooms for different calls)
+        });
+
+        this.webrtc.on('localStream', (stream) => {
+          console.log('Local stream added');
+          this.$refs.localVideo.srcObject = stream;
+        });
+
+        this.webrtc.on('videoAdded', (video) => {
+          console.log('Remote video added');
+          if (video && video.srcObject) {
+            this.$refs.remoteVideo.srcObject = video.srcObject;
+          }
+        });
+
+        this.webrtc.on('videoRemoved', () => {
+          console.log('Remote video removed');
+          this.remoteParticipantName = 'Remote User';
+        });
+
+        // Handle Socket.IO events
+        this.socket.on('chatMessage', (sender, message) => {
+          this.handleChatMessage(sender, message);
+        });
+
+      } catch (error) {
+        console.error('Error initializing video call:', error);
+        alert(`Error: ${error.message}`);
+      }
+    },
+    async requestMedia() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        this.$refs.localVideo.srcObject = stream;
+      } catch (error) {
+        console.error('Error accessing media devices.', error);
+        alert(`Error: ${error.message}`);
+      }
     },
     toggleMute() {
       this.isMuted = !this.isMuted;
-      this.rtcClient.toggleMute(this.isMuted);
+      if (this.webrtc) {
+        this.webrtc.toggleMute(this.isMuted);
+      }
     },
     endCall() {
-      this.rtcClient.disconnect();
-      // Navigate away from the video call component
+      if (this.webrtc) {
+        this.webrtc.leaveRoom();
+        this.webrtc = null; // Clean up webrtc client
+      }
+      if (this.socket) {
+        this.socket.disconnect();
+        this.socket = null; // Clean up socket client
+      }
+      this.$router.push('/chat'); // Navigate to chat view
     },
-    shareScreen() {
-      this.rtcClient.shareScreen();
+    async shareScreen() {
+      if (this.webrtc) {
+        try {
+          await this.webrtc.startScreenShare();
+        } catch (error) {
+          console.error('Error sharing screen:', error);
+        }
+      }
     },
     sendMessage() {
       if (this.newMessage.trim() !== '') {
-        this.rtcClient.sendChatMessage(this.newMessage);
-        this.chatMessages.push({
-          id: Date.now(),
-          sender: 'You',
-          content: this.newMessage,
-        });
-        this.newMessage = '';
+        if (this.socket) {
+          this.socket.emit('chatMessage', 'You', this.newMessage);
+          this.chatMessages.push({
+            id: Date.now(),
+            sender: 'You',
+            content: this.newMessage,
+          });
+          this.newMessage = '';
+        }
       }
-    },
-    handleRemoteStream(stream) {
-      this.$refs.remoteVideo.srcObject = stream;
-    },
-    handleParticipantJoined(participantName) {
-      this.remoteParticipantName = participantName;
-    },
-    handleParticipantLeft() {
-      this.remoteParticipantName = 'Remote User';
     },
     handleChatMessage(sender, message) {
       this.chatMessages.push({
@@ -95,9 +150,20 @@ export default {
         content: message,
       });
     },
+    cleanup() {
+      if (this.webrtc) {
+        this.webrtc.leaveRoom();
+        this.webrtc = null;
+      }
+      if (this.socket) {
+        this.socket.disconnect();
+        this.socket = null;
+      }
+    },
   },
 };
 </script>
+
 <style scoped>
 .video-call-container {
   display: flex;

@@ -18,56 +18,57 @@
     </div>
   </div>
 </template>
+
 <script>
 import axios from 'axios';
 
 export default {
   data() {
     return {
-      email: '', // Initialize as empty string
-      password: '', // Initialize as empty string
-      error: '', // Initialize as empty string
-      successMessage: '', // Initialize as empty string
+      email: '',
+      password: '',
+      error: '',
+      successMessage: '',
     };
   },
 
   methods: {
     async login() {
-      console.log('Login button clicked');
-      console.log('Email:', this.email);
-      console.log('Password:', this.password);
+      this.error = ''; // Reset error message
+      this.successMessage = ''; // Reset success message
 
       try {
-        const response = await axios.post('http://localhost:3000/api/login', {
+        const response = await axios.post('http://localhost:3000/auth/login', {
           email: this.email,
           password: this.password,
         });
 
-        console.log('Login response:', response.data); // Add this line
+        console.log('Login response:', response.data);
 
         if (response.data.success) {
-          this.successMessage = 'Login successful!';
-          console.log('Navigating to dashboard');
-          this.$router.push('/AppDashboard').catch(err => console.error('Navigation error:', err));
+          // Store user data in local storage
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          this.successMessage = 'Login successful! Redirecting...';
+          setTimeout(() => {
+            // Navigate to the dashboard
+            this.$router.push('/AppDashboard').catch(err => console.error('Navigation error:', err));
+          }, 1000); // Delay for user feedback
         } else {
           this.error = response.data.message || 'Invalid email or password';
         }
       } catch (error) {
-        console.error('Login error:', error); // Add this line
+        console.error('Login error:', error);
         this.error = 'An error occurred. Please try again.';
       }
     },
   },
 };
 </script>
+
 <style scoped>
 .login-container {
   height: 100vh;
   width: 100%;
-  background-image: url('@/assets/images/login.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -106,6 +107,11 @@ button {
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
   cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #45a049; /* Darker shade on hover */
 }
 
 .error-message {

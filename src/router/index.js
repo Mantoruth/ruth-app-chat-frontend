@@ -12,7 +12,7 @@ import StoriesPage from '../components/StoriesPage.vue';
 import UserProfile from '../components/UserProfile.vue';
 import NotFound from '../components/NotFound.vue';
 import AppDashboard from '../components/AppDashboard.vue';
-
+import Contacts1 from '@/components/ContactList1.vue';
 const routes = [
   {
     path: '/',
@@ -73,6 +73,11 @@ const routes = [
     path: '/Appdashboard',
     name: 'AppDashboard',
     component: AppDashboard,
+  },
+  {
+    path: '/contacts1',
+    name: 'Contacts1',
+    component: Contacts1,
   },
   
 ];
