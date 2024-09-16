@@ -1,23 +1,31 @@
 <template>
   <div id="app">
-    <header>
+    <header v-if="!hideHeaderFooter">
       <nav aria-label="Main Navigation">
-        <ul>
-          <li><img src="@/assets/images/logo.png" alt="Logo" class="logo" /></li>
-          <li><router-link to="/">Home</router-link></li>
-          <li><router-link to="/about">About Us</router-link></li>
-          <li><router-link to="/contacts">Contacts</router-link></li>
-          <li><router-link to="/services">Services</router-link></li>
-          <li><router-link to="/chat">Chat</router-link></li>
-        </ul>
+        <div class="nav-wrapper">
+          <img src="@/assets/images/logo.png" alt="Logo" class="logo" />
+          <ul class="nav-list">
+            <li><router-link to="/">Home</router-link></li>
+            <li><router-link to="/about">About Us</router-link></li>
+            <li><router-link to="/contacts">Contacts</router-link></li>
+            <li><router-link to="/services">Services</router-link></li>
+          </ul>
+        </div>
       </nav>
     </header>
 
     <main>
       <router-view />
+      <div class="messages-container">
+        <ul>
+          <li v-for="message in messages" :key="message.id">
+            <strong>User {{ message.userId }}:</strong> {{ message.text }}
+          </li>
+        </ul>
+      </div>
     </main>
 
-    <footer>
+    <footer v-if="!hideHeaderFooter">
       <div class="footer-content">
         <p>&copy; 2024 RUTH-APP. All rights reserved.</p>
         <nav aria-label="Footer Navigation">
@@ -36,18 +44,32 @@
 import { io } from 'socket.io-client'; // Import Socket.io client
 
 export default {
+  computed: {
+    hideHeaderFooter() {
+      return this.$route.meta.hideHeaderFooter;
+    },
+  },
   data() {
     return {
       socket: null,
+      messages: [], // To hold received messages
     };
   },
   mounted() {
     this.initSocket();
   },
+  beforeUnmount() {
+    if (this.socket) {
+      this.socket.off('newMessage'); // Clean up specific event
+      this.socket.disconnect();
+    }
+  },
   methods: {
     initSocket() {
-      // Connect to the Socket.io server
-      this.socket = io('http://localhost:3000'); // Adjust the port if needed
+      const serverUrl = process.env.VUE_APP_SOCKET_URL || 'http://localhost:3000';
+      this.socket = io(serverUrl, {
+        transports: ['websocket', 'polling'], // Prefer WebSocket, fallback to polling
+      });
 
       this.socket.on('connect', () => {
         console.log('Socket.io connection established.');
@@ -55,18 +77,31 @@ export default {
 
       this.socket.on('newMessage', (message) => {
         console.log('New message received:', message);
-        // Here you can update your UI with the new message
+        this.messages.push(message);
       });
 
       this.socket.on('disconnect', () => {
         console.log('Socket.io connection closed.');
       });
+
+      this.socket.on('connect_error', (error) => {
+        console.error('Connection error:', error);
+        // Consider using a notification library instead of alert
+        alert('Connection error! Please check your network or server status.'); 
+      });
     },
   },
 };
 </script>
+
 <style>
 /* Global styles */
+:root {
+  --main-bg-color: #333;
+  --text-color: #fff;
+  --link-hover-color: #ddd;
+  --spacing: 1rem;
+}
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -80,12 +115,17 @@ body {
 }
 
 header {
-  background-color: #333;
-  color: #fff;
-  padding: 1rem;
+  background-color: var(--main-bg-color);
+  color: var(--text-color);
+  padding: var(--spacing);
 }
 
-nav ul {
+.nav-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.nav-list {
   display: flex;
   list-style: none;
   margin: 0;
@@ -93,12 +133,15 @@ nav ul {
 }
 
 nav li {
-  margin-right: 1rem;
+  margin-right: var(--spacing);
 }
 
 nav a {
-  color: #fff;
+  color: var(--text-color);
   text-decoration: none;
+}
+nav a:hover {
+  color: var(--link-hover-color);
 }
 
 .logo {
@@ -111,11 +154,14 @@ main {
   padding: 2rem;
 }
 
+.messages-container {
+  margin-top: 2rem;
+}
+
 footer {
-  background-color: #333;
-  color: #fff;
-  padding: 1rem;
-  text-align: center;
+  background-color:var(--main-bg-color);
+  color: var(--text-color);
+  padding:var(--spacing);
 }
 
 .footer-content {
@@ -129,11 +175,25 @@ footer {
 }
 
 .footer-content nav li {
-  margin-left: 1rem;
+  margin-left: var(--spacing);
 }
 
 .footer-content a {
-  color: #fff;
+  color:var(--text-color);
   text-decoration: none;
+}
+.footer-content a:hover {
+  color: var(--link-hover-color);
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+  .nav-list {
+    flex-direction: column;
+  }
+  .footer-content {
+    flex-direction: column;
+    align-items: center;
+  }
 }
 </style>

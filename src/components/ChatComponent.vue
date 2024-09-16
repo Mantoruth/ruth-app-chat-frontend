@@ -1,12 +1,22 @@
 <template>
   <div class="chat-container">
+    <!-- Contacts Button Area -->
+    <div class="contacts-button">
+      <button @click="navigateToContacts1" class="btn btn-contacts">Contacts</button>
+    </div>
+
     <!-- Chat Area -->
     <div class="chat-area">
       <div v-if="isScreenSharing" class="shared-screen">
         <img :src="screenShareContent" alt="Shared Screen">
       </div>
       <div class="message-list">
-        <div class="message" v-for="message in messages" :key="message.id" :class="{ 'message-right': message.sender === currentUser }">
+        <div 
+          class="message" 
+          v-for="message in filteredMessages" 
+          :key="message.id" 
+          :class="{ 'message-right': message.sender === currentUser }"
+        >
           <div :class="['message-content', message.sender === currentUser ? 'sent' : 'received']">
             <div v-if="message.type === 'text'">{{ message.content }}</div>
             <div v-if="message.type === 'audio'">
@@ -32,35 +42,23 @@
         </div>
       </div>
       <div class="message-input">
-        <input type="text" v-model="newMessage" @keyup.enter="sendMessage" placeholder="Type your message..." />
+        <input 
+          type="text" 
+          v-model="newMessage" 
+          @keyup.enter="sendMessage" 
+          placeholder="Type your message here..." 
+        />
         <button @click="sendMessage" class="btn btn-send">Send</button>
         <button @click="toggleEmojiPicker" class="btn btn-emoji">😀</button>
         <button @click="startRecording" :disabled="isRecording" class="btn btn-record">🎤</button>
         <button @click="stopRecording" :disabled="!isRecording" class="btn btn-stop">Stop</button>
         <button @click="toggleVideoCall" class="btn btn-video">{{ isVideoCall ? 'End Video Call' : 'Start Video Call' }}</button>
-        <button @click="toggleScreenShare" class="btn btn-screen">{{ isScreenSharing ? 'Stop Screen Share' : 'Start Screen Share' }}</button>
+        <button @click="toggleScreenShare" class="btn btn-screen">{{ isScreenSharing ? 'Stop Sharing' : 'Start Sharing' }}</button>
         <button @click="showStickerPicker" class="btn btn-sticker">Stickers</button>
       </div>
-      <div v-if="showEmojiPicker" class="emoji-picker">
-        <span v-for="emoji in emojis.slice(0, 50)" :key="emoji" @click="addEmoji(emoji)">
-          {{ emoji }}
-        </span>
-        <button @click="showAllEmojis" class="btn btn-show-all">Show All Emojis</button>
-      </div>
-      <div v-if="showStickerPicker" class="sticker-picker">
-        <img src="sticker1.png" alt="Sticker 1" @click="sendSticker('sticker1.png')" class="sticker-image">
-        <img src="sticker2.png" alt="Sticker 2" @click="sendSticker('sticker2.png')" class="sticker-image">
-        <!-- Add more stickers here -->
-      </div>
-    </div>
-
-    <!-- Contacts Button -->
-    <div class="contacts-button">
-      <button @click="navigateToContacts1" class="btn btn-contacts">Contacts</button>
     </div>
   </div>
 </template>
-
 <script>
 import axios from 'axios';
 
@@ -80,136 +78,181 @@ export default {
                 '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷',
                 '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🤲', '👐', '🙌', '👏', '🤝', '👍', '👎', '👊'],
       allEmojis: ['😀', '😃', '😄', /* and so on, up to 300 emojis */],
-      currentUser: 'User1',
+      currentUser: 'bella',
       isVideoCall: false,
       isScreenSharing: false,
       screenShareContent: '', 
     };
   },
+  computed: {
+    filteredMessages() {
+      // Filter messages to show only those sent by the current user
+      return this.messages.filter(message =>
+       message.sender === this.currentUser || message.reciever === this.currentUser);
+    }
+  },
   methods: {
-    async fetchMessages() {
-      try {
-        const response = await axios.get('http://localhost:3000/messages'); 
-        this.messages = response.data;
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-      }
-    },
-    async sendMessage() {
-      if (this.newMessage.trim() === '') {
-        console.log('Message is empty. Not sending.');
-        return;
-      }
+  async fetchMessages() {
+    try {
+      const response = await axios.get('http://localhost:3000/messages'); 
+      this.messages = response.data;
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  },
 
-      try {
-        const response = await axios.post('http://localhost:3000/messages', { 
-          content: this.newMessage,
-          type: 'text',
-          sender: this.currentUser,
-        });
+  async sendMessage() {
+    const messageData = {
+      text: this.newMessage.trim(), // Use actual input and trim whitespace
+      content: "Your message content here" // Replace with actual content if needed
+    };
 
-        console.log('Message sent successfully:', response.data);
-
-        this.messages.push({
-          id: this.messages.length + 1,
-          content: this.newMessage,
-          type: 'text',
-          sender: this.currentUser,
-        });
-        this.newMessage = '';
-      } catch (error) {
-        console.error('Error sending message:', error);
-      }
-    },
-    async startRecording() {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    try {
+      const response = await axios.post('http://localhost:3000/messages', messageData, {
+        params: { sender: this.currentUser },
+      });
+      
+      // Add the message to the local messages array
+      this.messages.push({
+        id: response.data.newMessage.id, // Assuming the server returns the new message ID
+        text: messageData.text,
+        content: messageData.content,
+        createdAt: new Date().toISOString(),
+        sender: this.currentUser,
+      });
+      
+      // Clear the input field
+      this.newMessage = '';
+    } catch (error) {
+      console.error('Error sending message:', error.response ? error.response.data : error.message);
+    }
+  },
+  async startRecording() {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          this.mediaRecorder = new MediaRecorder(stream);
-          this.mediaRecorder.ondataavailable = (event) => {
-            this.audioChunks.push(event.data);
-          };
-          this.mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
-            this.audioChunks = [];
-            const audioUrl = URL.createObjectURL(audioBlob);
-            await this.sendAudio(audioBlob);
-            this.messages.push({
-              id: this.messages.length + 1,
-              content: audioUrl,
-              type: 'audio',
-              sender: this.currentUser,
-            });
-          };
-          this.mediaRecorder.start();
-          this.isRecording = true;
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.mediaRecorder = new MediaRecorder(stream);
+            this.audioChunks = []; // Initialize audio chunks
+
+            this.mediaRecorder.ondataavailable = (event) => {
+                this.audioChunks.push(event.data);
+            };
+
+            this.mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
+                this.audioChunks = []; // Reset audio chunks after recording
+
+                await this.sendAudio(audioBlob); // Send audio after recording stops
+            };
+
+            this.mediaRecorder.start();
+            this.isRecording = true;
         } catch (err) {
-          console.error('Error accessing microphone:', err);
+            console.error('Error accessing microphone:', err);
         }
-      }
-    },
-    stopRecording() {
-      if (this.mediaRecorder) {
+    } else {
+        console.error('getUserMedia not supported in this browser.');
+    }
+},
+async stopRecording() {
+      if (this.mediaRecorder && this.isRecording) {
         this.mediaRecorder.stop();
         this.isRecording = false;
       }
     },
-    async sendAudio(audioBlob) {
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.wav');
-      try {
-        await axios.post('http://localhost:3000/messages', formData, { 
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          },
-          params: { sender: this.currentUser },
+async sendAudio(audioBlob) {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.wav');
+
+    // Use current newMessage or default text
+    const text = this.newMessage.trim(); // Trimmed user input
+    const content = "Audio message content"; // Customize as needed
+
+    // Log the values to the console
+    console.log('Current newMessage:', this.newMessage);
+    console.log('Sending audio with text:', text);
+    console.log('Sending audio with content:', content);
+   
+    if (!content) {
+    // Optional: Use default text or handle missing text case
+    console.error('content is required but empty');
+    return; // Prevent sending if content is missing
+  }
+    
+    // Append text and content to the form data
+    formData.append('text', text);
+    formData.append('content', content);
+
+    try {
+        const response = await axios.post('http://localhost:3000/messages', formData, { 
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            },
+            params: { sender: this.currentUser },
         });
-        this.fetchMessages();
-      } catch (error) {
-        console.error('Error sending audio:', error);
-      }
-    },
-    toggleEmojiPicker() {
-      this.showEmojiPicker = !this.showEmojiPicker;
-    },
-    addEmoji(emoji) {
-      this.newMessage += emoji;
-      this.showEmojiPicker = false;
-    },
-    toggleVideoCall() {
-      this.isVideoCall = !this.isVideoCall;
+        
+        const audioUrl = URL.createObjectURL(audioBlob);
+        this.messages.push({
+            id: response.data.newMessage.id, // Assuming the server returns the new message ID
+            text: text,
+            content: audioUrl,
+            type: 'audio',
+            createdAt: new Date().toISOString(),
+            sender: this.currentUser,
+        });
+
+        // Optionally refetch messages to sync with server
+        this.fetchMessages(); 
+    } catch (error) {
+        console.error('Error sending audio:', error.response ? error.response.data : error.message);
+    }
+},
+ 
+toggleEmojiPicker() {
+    this.showEmojiPicker = !this.showEmojiPicker;
+  },
+
+  addEmoji(emoji) {
+    this.newMessage += emoji;
+    this.showEmojiPicker = false;
+  },
+
+  toggleVideoCall() {
+    this.isVideoCall = !this.isVideoCall;
     if (this.isVideoCall) {
       this.$router.push('/video-call');
     } else {
-      // Handle ending the video call, if needed
-      this.$router.push('/'); // Or wherever you want to navigate when ending the call
+      this.$router.push('/'); // Navigate when ending the call
     }
-    },
-    toggleScreenShare() {
-      this.isScreenSharing = !this.isScreenSharing;
-      if (this.isScreenSharing) {
-        // Logic to start screen sharing and set screenShareContent
-        this.screenShareContent = 'path/to/screen-share-content.png'; // Update with actual content
-      } else {
-        this.screenShareContent = '';
-      }
-    },
-    showAllEmojis() {
-      console.log('Showing all emojis');
-    },
-    sendSticker(stickerUrl) {
-      this.messages.push({
-        id: this.messages.length + 1,
-        content: stickerUrl,
-        type: 'sticker',
-        sender: this.currentUser,
-      });
-      this.showStickerPicker = false;
-    },
-    navigateToContacts1() {
-      this.$router.push('/contacts1'); 
+  },
+
+  toggleScreenShare() {
+    this.isScreenSharing = !this.isScreenSharing;
+    if (this.isScreenSharing) {
+      this.screenShareContent = 'path/to/screen-share-content.png'; // Update with actual content
+    } else {
+      this.screenShareContent = '';
     }
- },
+  },
+
+  showAllEmojis() {
+    console.log('Showing all emojis');
+  },
+
+  sendSticker(stickerUrl) {
+    this.messages.push({
+      id: this.messages.length + 1,
+      content: stickerUrl,
+      type: 'sticker',
+      sender: this.currentUser,
+    });
+    this.showStickerPicker = false;
+  },
+  navigateToContacts1() {
+    this.$router.push('/contacts1'); 
+  }
+},
+
   created() {
     this.fetchMessages();
   }
@@ -218,7 +261,6 @@ export default {
 <style scoped>
 .video-call-container {
   display: flex;
-  flex-direction: column;
   height: 100vh;
   background-color: #1c1c1e;
   color: #f5f5f7;
@@ -227,7 +269,7 @@ export default {
 
 .video-streams {
   display: flex;
-  flex-grow: 1;
+  flex: 1; /* Takes half of the width */
   justify-content: center;
   align-items: center;
   gap: 20px;
@@ -237,7 +279,7 @@ export default {
 .local-stream,
 .remote-stream {
   position: relative;
-  width: 50%;
+  width: 50%; /* Each stream takes half of the video area */
   height: 100%;
   background-color: #2c2c2e;
   border-radius: 8px;
@@ -284,13 +326,13 @@ export default {
 .call-controls button:hover {
   background-color: #48484a;
 }
+
 .chat-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  max-width: 100%;
-  margin: auto;
-  font-family: Arial, sans-serif;
+  margin-left: 220px; /* Leave space for contacts button */
+  overflow-y: auto; /* Allows scrolling if content exceeds height */
 }
 
 .chat-area {
@@ -301,6 +343,7 @@ export default {
   background-color: #f5f5f5;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .shared-screen {
@@ -319,14 +362,30 @@ export default {
 
 .message-list {
   flex: 1;
+  display: flex;
   overflow-y: auto;
+  flex-direction: column-reverse; /* Display latest messages at the bottom */
   padding: 10px;
+  margin-top: 10px;
 }
 
 .message {
   display: flex;
   align-items: flex-start;
   margin-bottom: 10px;
+  justify-content: flex-end; /* Align messages to the right by default */
+}
+.message.user {
+    background-color: #f0f0f0;
+    text-align: right; /* Align user messages to the right */
+}
+.message.other {
+    background-color: #e0e0e0;
+    text-align: left; /* Align other messages to the left */
+}
+
+.message.received {
+  justify-content: flex-start; /* Align received messages to the left */
 }
 
 .message-content {
@@ -334,12 +393,7 @@ export default {
   padding: 10px;
   border-radius: 8px;
   font-size: 14px;
-}
-
-.message-right .message-content {
-  background-color: #0084ff;
-  color: #fff;
-  align-self: flex-end;
+  word-break: break-word;
 }
 
 .message-content.sent {
@@ -401,6 +455,23 @@ export default {
   background: #138496;
 }
 
+.contacts-button {
+  width: 100px; /* Set a fixed width for the contacts area */
+  background-color: #f5f5f5; /* Match background with chat area */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.contacts-button .btn {
+  position: absolute; /* Position it absolutely */
+  top: 10px; /* Distance from the top */
+  left: 10px; /* Distance from the left */
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
 .emoji-picker, .sticker-picker {
   position: absolute;
   bottom: 60px;
@@ -428,4 +499,5 @@ export default {
 .sticker-picker .sticker-image:hover {
   opacity: 0.8;
 }
+
 </style>

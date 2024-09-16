@@ -8,11 +8,11 @@ import LoginPage from '../components/LoginPage.vue';
 import RegisterPage from '../components/RegisterPage.vue';
 import ContactsPage from '../components/ContactsPage.vue';
 import ServicesPage from '../components/ServicesPage.vue';
-import StoriesPage from '../components/StoriesPage.vue';
 import UserProfile from '../components/UserProfile.vue';
 import NotFound from '../components/NotFound.vue';
 import AppDashboard from '../components/AppDashboard.vue';
 import Contacts1 from '@/components/ContactList1.vue';
+
 const routes = [
   {
     path: '/',
@@ -22,17 +22,20 @@ const routes = [
   {
     path: '/chat',
     name: 'Chat',
-    component: ChatComponent
+    component: ChatComponent,
+    meta: { hideHeaderFooter: true } // Add this line
   },
   {
     path: '/login',
     name: 'Login',
-    component: LoginPage
+    component: LoginPage,
+    meta: { hideHeaderFooter: true } // Add this line
   },
   {
     path: '/register',
     name: 'Register',
-    component: RegisterPage
+    component: RegisterPage,
+    meta: { hideHeaderFooter: true } // Add this line
   },
   {
     path: '/about',
@@ -52,17 +55,14 @@ const routes = [
   {
     path: '/user-profile',
     name: 'UserProfile',
-    component: UserProfile
-  },
-  {
-    path: '/stories',
-    name: 'Stories',
-    component: StoriesPage
+    component: UserProfile,
+    meta: { hideHeaderFooter: true } // Add this line
   },
   {
     path: '/video-call',
     name: 'VideoCall',
-    component: VideoCall
+    component: VideoCall,
+    meta: { hideHeaderFooter: true } // Add this line
   },
   {
     path: '/:pathMatch(.*)*', // Catch-all route for 404
@@ -73,13 +73,14 @@ const routes = [
     path: '/Appdashboard',
     name: 'AppDashboard',
     component: AppDashboard,
+    meta: { hideHeaderFooter: true } // Add this line
   },
   {
     path: '/contacts1',
     name: 'Contacts1',
     component: Contacts1,
+    meta: { hideHeaderFooter: true } // Add this line
   },
-  
 ];
 
 const router = createRouter({

@@ -19,7 +19,7 @@
 
     <div class="chat-container">
       <div class="chat-messages">
-        <div v-for="message in chatMessages" :key="message.id">
+        <div v-for="message in chatMessages" :key="message.id" :class="{'received': message.sender !== 'You', 'sent': message.sender === 'You'}">
           <strong>{{ message.sender }}:</strong> {{ message.content }}
         </div>
       </div>
@@ -52,20 +52,17 @@ export default {
   methods: {
     async initializeVideoCall() {
       try {
-        // Initialize SimpleWebRTC instance
         this.webrtc = new SimpleWebRTC({
           localVideoEl: this.$refs.localVideo,
           remoteVideosEl: this.$refs.remoteVideo,
           autoRequestMedia: true,
         });
 
-        // Initialize Socket.IO client
         this.socket = io('http://localhost:3000'); // Adjust the server URL as needed
 
-        // Handle WebRTC events
         this.webrtc.on('readyToCall', () => {
           console.log('WebRTC is ready to call');
-          this.webrtc.joinRoom('default-room'); // Join a room (you can use different rooms for different calls)
+          this.webrtc.joinRoom('default-room');
         });
 
         this.webrtc.on('localStream', (stream) => {
@@ -85,22 +82,12 @@ export default {
           this.remoteParticipantName = 'Remote User';
         });
 
-        // Handle Socket.IO events
         this.socket.on('chatMessage', (sender, message) => {
           this.handleChatMessage(sender, message);
         });
 
       } catch (error) {
         console.error('Error initializing video call:', error);
-        alert(`Error: ${error.message}`);
-      }
-    },
-    async requestMedia() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        this.$refs.localVideo.srcObject = stream;
-      } catch (error) {
-        console.error('Error accessing media devices.', error);
         alert(`Error: ${error.message}`);
       }
     },
@@ -113,13 +100,13 @@ export default {
     endCall() {
       if (this.webrtc) {
         this.webrtc.leaveRoom();
-        this.webrtc = null; // Clean up webrtc client
+        this.webrtc = null;
       }
       if (this.socket) {
         this.socket.disconnect();
-        this.socket = null; // Clean up socket client
+        this.socket = null;
       }
-      this.$router.push('/chat'); // Navigate to chat view
+      this.$router.push('/chat');
     },
     async shareScreen() {
       if (this.webrtc) {
@@ -250,6 +237,15 @@ export default {
 
 .chat-messages > div {
   margin-bottom: 5px;
+  color: #f5f5f7;
+}
+
+.chat-messages .sent {
+  text-align: right;
+}
+
+.chat-messages .received {
+  text-align: left;
 }
 
 .chat-container input {
@@ -259,5 +255,6 @@ export default {
   border-radius: 4px;
   padding: 10px;
   font-size: 16px;
+  width: 100%;
 }
 </style>
